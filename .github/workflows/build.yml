@@ -1,0 +1,84 @@
+name: Analyze and build CustomJoinSound plugin
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Analyze API compatibility and verify PHAR
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out CustomJoinSound source
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check out minimum supported Axolotl-PM source
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: axolotl-pm/PocketMine-MP
+          ref: 769a1490579cda768afb052efedf711bab666ec0
+          path: .devtools-dependencies/axolotl-pm-minimum
+          persist-credentials: false
+
+      - name: Check out tested Axolotl-PM source
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: axolotl-pm/PocketMine-MP
+          ref: dfe0d07e48a9e8d5a4a242fa43ff1cd3b743a955
+          path: .devtools-dependencies/axolotl-pm-tested
+          persist-credentials: false
+
+      - name: Check out Axolotl-PM PHP setup helper
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: axolotl-pm/setup-php-action
+          ref: b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e
+          path: .devtools-dependencies/setup-php-action
+          persist-credentials: false
+
+      - name: Set up Axolotl-PM PHP environment
+        shell: bash
+        env:
+          INPUT_PHP-VERSION: "8.1"
+          INPUT_PM-VERSION-MAJOR: "5"
+          INPUT_INSTALL-PATH: ./.php-bin
+        run: node "$GITHUB_WORKSPACE/.devtools-dependencies/setup-php-action/dist/index.js"
+
+      - name: Lint CustomJoinSound PHP source
+        run: find src -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Analyze both API sources and build with DevTools
+        id: build
+        uses: NhanAZ/DevTools@6606444fc32787a3e50275fdb668c2310e899740
+        with:
+          phpstan: max
+          phpstan-server: |
+            .devtools-dependencies/axolotl-pm-minimum
+            .devtools-dependencies/axolotl-pm-tested
+
+      - name: Verify PHAR checksum, license, and resource pack files
+        shell: bash
+        env:
+          PHAR_PATH: ${{ steps.build.outputs.phar }}
+          PHAR_SHA256: ${{ steps.build.outputs.sha256 }}
+          BUILD_METADATA: ${{ steps.build.outputs.metadata }}
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' "$PHAR_SHA256" "$PHAR_PATH" | sha256sum --check --status
+          php -r '$p=new Phar(getenv("PHAR_PATH")); foreach(["LICENSE", "resources/CustomJoinSound Pack/manifest.json", "resources/CustomJoinSound Pack/pack_icon.png", "resources/CustomJoinSound Pack/sounds/sound_definitions.json", "resources/CustomJoinSound Pack/sounds/CustomJoinSound.ogg"] as $f){if(!isset($p[$f])){throw new RuntimeException("Missing PHAR file: ".$f);}}'
+          cp "$BUILD_METADATA" build/build-metadata.json
+
+      - name: Upload verified CustomJoinSound PHAR
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: CustomJoinSound-${{ github.sha }}
+          path: |
+            ${{ steps.build.outputs.phar }}
+            build/build-metadata.json
+          if-no-files-found: error
+          retention-days: 14
