@@ -13,12 +13,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out CustomJoinSound source
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Check out minimum supported Axolotl-PM source
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: axolotl-pm/PocketMine-MP
           ref: 769a1490579cda768afb052efedf711bab666ec0
@@ -26,35 +26,26 @@ jobs:
           persist-credentials: false
 
       - name: Check out tested Axolotl-PM source
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: axolotl-pm/PocketMine-MP
           ref: dfe0d07e48a9e8d5a4a242fa43ff1cd3b743a955
           path: .devtools-dependencies/axolotl-pm-tested
           persist-credentials: false
 
-      - name: Check out Axolotl-PM PHP setup helper
-        uses: actions/checkout@v7.0.1
-        with:
-          repository: axolotl-pm/setup-php-action
-          ref: b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e
-          path: .devtools-dependencies/setup-php-action
-          persist-credentials: false
-
       - name: Set up Axolotl-PM PHP environment
-        shell: bash
-        env:
-          INPUT_PHP-VERSION: "8.1"
-          INPUT_PM-VERSION-MAJOR: "5"
-          INPUT_INSTALL-PATH: ./.php-bin
-        run: node "$GITHUB_WORKSPACE/.devtools-dependencies/setup-php-action/dist/index.js"
+        uses: axolotl-pm/setup-php-action@b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e
+        with:
+          php-version: "8.1"
+          pm-version-major: "5"
+          install-path: ./.php-bin
 
       - name: Lint CustomJoinSound PHP source
         run: find src -name '*.php' -print0 | xargs -0 -n1 php -l
 
       - name: Analyze both API sources and build with DevTools
         id: build
-        uses: NhanAZ/DevTools@6606444fc32787a3e50275fdb668c2310e899740
+        uses: NhanAZ/DevTools@8d13a75aaf4f330fdbd93737d58be9cacc41e262 # v1.0.15
         with:
           phpstan: max
           phpstan-server: |
@@ -74,7 +65,7 @@ jobs:
           cp "$BUILD_METADATA" build/build-metadata.json
 
       - name: Upload verified CustomJoinSound PHAR
-        uses: actions/upload-artifact@v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: CustomJoinSound-${{ github.sha }}
           path: |
