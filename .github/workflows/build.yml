@@ -36,7 +36,7 @@ jobs:
       - name: Set up Axolotl-PM PHP environment
         uses: axolotl-pm/setup-php-action@b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e
         with:
-          php-version: "8.1"
+          php-version: "8.4"
           pm-version-major: "5"
           install-path: ./.php-bin
 
