@@ -27,7 +27,7 @@ The generated `.mcpack` in the plugin data directory is a cache derived from the
 
 ## Build and development
 
-The [build workflow](.github/workflows/build.yml) runs PHPStan at maximum level and uses [DevTools](https://github.com/AxolotlBucketLabs/DevTools) to build and inspect the plugin PHAR. CI pins the tool and server revisions. GitHub's default run title keeps push runs identifiable by commit message.
+The [build workflow](.github/workflows/build.yml) runs PHPStan at maximum level and uses [DevTools](https://github.com/AxolotlBucketLabs/DevTools) to build and inspect the plugin PHAR. CI uses the maintained DevTools latest channel and pins the server revision. GitHub's default run title keeps push runs identifiable by commit message.
 
 ## License and support
 

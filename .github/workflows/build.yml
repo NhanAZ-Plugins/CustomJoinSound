@@ -45,7 +45,7 @@ jobs:
 
       - name: Analyze both API sources and build with DevTools
         id: build
-        uses: AxolotlBucketLabs/DevTools@v3 # v3.0.0
+        uses: AxolotlBucketLabs/DevTools@latest
         with:
           phpstan: max
           phpstan-server: |
